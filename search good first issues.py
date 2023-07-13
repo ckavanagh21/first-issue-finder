@@ -4,9 +4,8 @@ def search_good_first_issues(languages):
     # GitHub API endpoint for searching issues
     url = 'https://api.github.com/search/issues'
 
+    # Split languages into a list of strings
     languages = languages.split()
-    for lang in languages: 
-        print(lang)
     language_query = ' '.join([f'language:{lang}' for lang in languages])
 
     # Parameters for the search query
@@ -35,6 +34,7 @@ def search_good_first_issues(languages):
     print('Request failed with status code:', response.status_code)
     return []
 
+# Ask what languages you want to search for, saves as a string
 languages = input("What languages are you looking to contribute in? Please separate using spaces.\n")
 # Call the function to retrieve the issue links
 issue_links = search_good_first_issues(languages)
