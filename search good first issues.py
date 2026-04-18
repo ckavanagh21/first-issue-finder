@@ -1,6 +1,6 @@
-import requests
+import requests, math
 from requests.exceptions import RequestException, ConnectionError, Timeout, TooManyRedirects
-
+from tqdm import tqdm
 
 def search_good_first_issues(languages):
     try:
@@ -10,7 +10,7 @@ def search_good_first_issues(languages):
         language_query = ' '.join([f'language:{lang}' for lang in languages])
 
         params = {
-            'q': f'label:"good first issue" {language_query}',
+            'q': f'label:"good first issue" {language_query} state:open',
             'sort': 'created',
             'order': 'desc'
         }
@@ -20,8 +20,7 @@ def search_good_first_issues(languages):
         if response.status_code == 200:
             data = response.json()
             issues = data['items']
-            issue_links = [issue['html_url'] for issue in issues]
-            return issue_links
+            return issues
 
     except Timeout:
         print('Error - The request timed out.')
@@ -38,40 +37,28 @@ def search_good_first_issues(languages):
 
 
 # 🔥 NEW FUNCTION (your contribution)
-def get_issue_details(url):
-    try:
-        api_url = url.replace("https://github.com/", "https://api.github.com/repos/")
+def get_issue_details(issue):
+    repo_name = issue['repository_url'].split('/')[-1]
+    title = issue['title']
+    url = issue['html_url']
 
-        response = requests.get(api_url)
-
-        if response.status_code == 200:
-            data = response.json()
-
-            repo_name = data['repository_url'].split('/')[-1]
-            title = data['title']
-
-            print(f"\n📦 Repo: {repo_name}")
-            print(f"📝 Title: {title}")
-            print(f"🔗 Link: {url}")
-            print("-" * 50)
-
-        else:
-            print(url)
-
-    except Exception:
-        print(url)
+    tqdm.write(f"📦 Repo: {repo_name}")
+    tqdm.write(f"📝 Title: {title}")
+    tqdm.write(f"🔗 Link: {url}")
+    tqdm.write("-" * 50)
 
 
 # 🔹 INPUT
 languages = input("What languages are you looking to contribute in? Please separate using spaces.\n")
 
 # 🔹 FETCH LINKS
+print("\nSearching for open good first issues...")
 issue_links = search_good_first_issues(languages)
+print("\nSearch complete. Printing")
 
 # 🔹 DISPLAY RESULTS (UPDATED)
-counter = 0
-for link in issue_links:
-    counter += 1
-    get_issue_details(link)
+for issue in tqdm(issue_links, desc="Fetching issues"):
+    get_issue_details(issue)
 
+counter = len(issue_links)
 print(f'\nTotal issues found: {counter}')
